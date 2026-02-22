@@ -111,6 +111,20 @@ class ZwaveWebSocketClient {
   }
 
   handleEvent(event) {
+    // Handle node name/location changes
+    if (event.source === 'node' && event.event === 'value updated' && event.args.commandClass === 119) {
+      const node = this.nodes.get(event.nodeId);
+      if (node) {
+        if (event.args.property === 'name') {
+          node.name = event.args.newValue;
+        } else if (event.args.property === 'location') {
+          node.location = event.args.newValue;
+        }
+        // Update promClient with new node info
+        this.promClient.setNodes(this.nodes);
+      }
+    }
+
     logger.debug('Event:', event);
     // Pass to prom client
     this.promClient.handleEvent(event);
