@@ -22,6 +22,19 @@ docker run -p 9090:9090 \
   zwave-js-prom-exporter
 ```
 
+### Automated Builds
+
+Docker images are automatically built and pushed to GitHub Container Registry using semantic versioning:
+
+- **Latest**: `ghcr.io/{username}/zwave-js-prom-exporter:latest`
+- **Versioned**: `ghcr.io/{username}/zwave-js-prom-exporter:v1.0.0`
+- **Package version**: `ghcr.io/{username}/zwave-js-prom-exporter:1.0.0`
+
+The workflow triggers on:
+- Pushes to `main`/`master` branch
+- Git tags starting with `v`
+- Pull requests
+
 ### Environment Variables
 
 - `ZWAVE_WS_URL`: WebSocket URL for zwave-js-server (default: ws://localhost:3000)
@@ -34,7 +47,7 @@ docker run -p 9090:9090 \
 version: '3.8'
 services:
   zwave-js-prom-exporter:
-    build: .
+    image: ghcr.io/{username}/zwave-js-prom-exporter:latest
     ports:
       - "9090:9090"
     environment:
