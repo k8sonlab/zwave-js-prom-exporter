@@ -9,7 +9,7 @@ npm install
 
 ## Docker
 
-Build and run with Docker:
+Build and run with Docker (uses Node.js 20, compatible with zwave-js-ui):
 
 ```bash
 # Build the image

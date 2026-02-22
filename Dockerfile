@@ -1,5 +1,5 @@
-# Use Node.js 18 LTS
-FROM node:18-alpine
+# Use Node.js 20 (compatible with zwave-js-ui)
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
@@ -20,9 +20,6 @@ RUN adduser -S nextjs -u 1001
 # Change ownership
 RUN chown -R nextjs:nodejs /app
 USER nextjs
-
-# Expose port
-EXPOSE 9090
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
