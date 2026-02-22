@@ -34,7 +34,12 @@ class PromClient {
   handleEvent(event) {
     if (event.source === 'node' && event.event === 'value updated') {
       const { nodeId, args } = event;
-      const { commandClassName, endpoint, property, propertyKey, propertyName, propertyKeyName, newValue } = args;
+      const { commandClass, commandClassName, endpoint, property, propertyKey, propertyName, propertyKeyName, newValue } = args;
+
+      // Exclude certain command classes
+      if ([112, 114, 134, 96].includes(commandClass)) {
+        return;
+      }
 
       // Convert to number if possible
       let value = newValue;
@@ -53,7 +58,7 @@ class PromClient {
         this.gauges.set(metricName, new promClient.Gauge({
           name: metricName,
           help: `Z-Wave ${commandClassName} values`,
-          labelNames: ['node_id', 'node_name', 'node_location', 'property', 'property_key', 'endpoint'],
+          labelNames: ['node_id', 'Name', 'Location', 'property', 'property_key', 'endpoint'],
           registers: [this.register]
         }));
       }
@@ -62,8 +67,8 @@ class PromClient {
 
       const labels = {
         node_id: nodeId,
-        node_name: this.nodes.get(nodeId)?.name || '',
-        node_location: this.nodes.get(nodeId)?.location || '',
+        Name: this.nodes.get(nodeId)?.name || '',
+        Location: this.nodes.get(nodeId)?.location || '',
         property: propertyName || property,
         property_key: propertyKeyName || propertyKey || '',
         endpoint: endpoint || 0

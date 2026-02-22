@@ -78,6 +78,35 @@ class ZwaveWebSocketClient {
       });
       logger.info(`Parsed ${this.nodes.size} nodes from state`);
       this.promClient.setNodes(this.nodes);
+
+      // Set initial values
+      result.state.nodes.forEach(node => {
+        if (node.values) {
+          Object.values(node.values).forEach(valueData => {
+            // Exclude certain command classes
+            if ([112, 114, 134, 96].includes(valueData.commandClass)) {
+              return;
+            }
+            const simulatedEvent = {
+              source: 'node',
+              event: 'value updated',
+              nodeId: node.nodeId,
+              args: {
+                commandClass: valueData.commandClass,
+                commandClassName: valueData.commandClassName || valueData.commandClass,
+                endpoint: valueData.endpoint,
+                property: valueData.property,
+                propertyKey: valueData.propertyKey,
+                propertyName: valueData.propertyName,
+                propertyKeyName: valueData.propertyKeyName,
+                newValue: valueData.value
+              }
+            };
+            this.promClient.handleEvent(simulatedEvent);
+          });
+        }
+      });
+      logger.info('Set initial values from state');
     }
   }
 
