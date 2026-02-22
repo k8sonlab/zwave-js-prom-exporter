@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const logger = require('./logger');
 
 class ZwaveWebSocketClient {
   constructor(url, promClient) {
@@ -6,13 +7,15 @@ class ZwaveWebSocketClient {
     this.promClient = promClient;
     this.ws = null;
     this.messageId = 1;
+    this.nodes = new Map();
+    this.startListeningMsgId = null;
   }
 
   connect() {
     this.ws = new WebSocket(this.url);
 
     this.ws.on('open', () => {
-      console.log('Connected to zwave-js-server');
+      logger.info('Connected to zwave-js-server');
       this.sendInitialize();
     });
 
@@ -22,11 +25,11 @@ class ZwaveWebSocketClient {
     });
 
     this.ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+      logger.error('WebSocket error:', error);
     });
 
     this.ws.on('close', () => {
-      console.log('WebSocket connection closed');
+      logger.info('WebSocket connection closed');
     });
   }
 
@@ -44,24 +47,25 @@ class ZwaveWebSocketClient {
   }
 
   sendStartListening() {
+    this.startListeningMsgId = this.messageId;
     this.sendCommand('start_listening');
   }
 
   handleMessage(message) {
     if (message.type === 'version') {
-      console.log('Server version:', message);
+      logger.info('Server version:', message);
       this.sendStartListening();
     } else if (message.type === 'result') {
-      console.log('Command result:', message);
+      logger.debug('Command result:', message);
     } else if (message.type === 'event') {
       this.handleEvent(message.event);
     } else {
-      console.log('Unknown message type:', message);
+      logger.warn('Unknown message type:', message);
     }
   }
 
   handleEvent(event) {
-    console.log('Event:', event);
+    logger.debug('Event:', event);
     // Pass to prom client
     this.promClient.handleEvent(event);
   }

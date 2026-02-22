@@ -1,18 +1,13 @@
 const promClient = require('prom-client');
 const http = require('http');
+const logger = require('./logger');
 
 class PromClient {
   constructor(port = 9090) {
     this.register = new promClient.Registry();
     promClient.collectDefaultMetrics({ register: this.register });
 
-    // Create a gauge for Z-Wave values
-    this.zwaveValueGauge = new promClient.Gauge({
-      name: 'zwave_value',
-      help: 'Z-Wave node values',
-      labelNames: ['node_id', 'command_class', 'property', 'property_key', 'endpoint'],
-      registers: [this.register]
-    });
+    this.gauges = new Map();
 
     this.server = http.createServer((req, res) => {
       if (req.url === '/metrics') {
@@ -27,14 +22,14 @@ class PromClient {
     });
 
     this.server.listen(port, () => {
-      console.log(`Prometheus metrics server listening on port ${port}`);
+      logger.info(`Prometheus metrics server listening on port ${port}`);
     });
   }
 
   handleEvent(event) {
     if (event.source === 'node' && event.event === 'value updated') {
       const { nodeId, args } = event;
-      const { commandClass, endpoint, property, propertyKey, newValue } = args[0];
+      const { commandClassName, endpoint, property, propertyKey, newValue } = args;
 
       // Convert to number if possible
       let value = newValue;
@@ -45,15 +40,29 @@ class PromClient {
         return;
       }
 
+      // Create metric name based on command class
+      const metricName = 'zwave_' + commandClassName.toLowerCase().replace(/\s+/g, '_');
+
+      // Create gauge if it doesn't exist
+      if (!this.gauges.has(metricName)) {
+        this.gauges.set(metricName, new promClient.Gauge({
+          name: metricName,
+          help: `Z-Wave ${commandClassName} values`,
+          labelNames: ['node_id', 'property', 'property_key', 'endpoint'],
+          registers: [this.register]
+        }));
+      }
+
+      const gauge = this.gauges.get(metricName);
+
       const labels = {
         node_id: nodeId,
-        command_class: commandClass,
         property: property,
         property_key: propertyKey || '',
         endpoint: endpoint || 0
       };
 
-      this.zwaveValueGauge.set(labels, value);
+      gauge.set(labels, value);
     }
   }
 }
