@@ -9,13 +9,22 @@ class ZwaveWebSocketClient {
     this.messageId = 1;
     this.nodes = new Map();
     this.startListeningMsgId = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 10;
+    this.reconnectDelay = 1000; // Start with 1 second
+    this.isReconnecting = false;
   }
 
   connect() {
+    if (this.isReconnecting) return; // Prevent multiple connection attempts
+
     this.ws = new WebSocket(this.url);
 
     this.ws.on('open', () => {
       logger.info('Connected to zwave-js-server');
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1000;
+      this.isReconnecting = false;
       this.sendInitialize();
     });
 
@@ -26,11 +35,30 @@ class ZwaveWebSocketClient {
 
     this.ws.on('error', (error) => {
       logger.error('WebSocket error:', error);
+      this.scheduleReconnect();
     });
 
     this.ws.on('close', () => {
       logger.info('WebSocket connection closed');
+      this.scheduleReconnect();
     });
+  }
+
+  scheduleReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      logger.error(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
+      return;
+    }
+
+    this.reconnectAttempts++;
+    this.isReconnecting = true;
+
+    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
+    logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+    setTimeout(() => {
+      this.connect();
+    }, delay);
   }
 
   sendCommand(command, params = {}) {
@@ -128,6 +156,23 @@ class ZwaveWebSocketClient {
     logger.debug('Event:', event);
     // Pass to prom client
     this.promClient.handleEvent(event);
+  }
+
+  scheduleReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      logger.error(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
+      return;
+    }
+
+    this.reconnectAttempts++;
+    this.isReconnecting = true;
+
+    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
+    logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+    setTimeout(() => {
+      this.connect();
+    }, delay);
   }
 }
 

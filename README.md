@@ -53,6 +53,10 @@ The application uses Winston for structured logging. Set the log level with the 
 - `info`: General information (default)
 - `debug`: Detailed debug information including all events
 
+## Reconnection
+
+The WebSocket client automatically reconnects in case of connection interruption using exponential backoff (starting at 1 second, doubling each attempt up to 10 attempts). This ensures reliable operation even with network issues or server restarts.
+
 ## Initial Commands
 
 The WebSocket client sends the following initial commands:
