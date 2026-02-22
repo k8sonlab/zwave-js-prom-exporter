@@ -7,18 +7,43 @@ A WebSocket prometheus exporter for Zwave js ui
 npm install
 ```
 
-## Usage
+## Docker
 
-Set the WebSocket URL for zwave-js-server:
+Build and run with Docker:
 
 ```bash
-export ZWAVE_WS_URL=ws://localhost:3000
-export PROM_PORT=9090
-export LOG_LEVEL=info  # optional: error, warn, info, debug
-npm start
+# Build the image
+docker build -t zwave-js-prom-exporter .
+
+# Run the container
+docker run -p 9090:9090 \
+  -e ZWAVE_WS_URL=ws://host.docker.internal:3000 \
+  -e LOG_LEVEL=info \
+  zwave-js-prom-exporter
 ```
 
-The exporter will connect to the WebSocket, send initial commands (initialize and start_listening), and expose metrics at http://localhost:9090/metrics.
+### Environment Variables
+
+- `ZWAVE_WS_URL`: WebSocket URL for zwave-js-server (default: ws://localhost:3000)
+- `PROM_PORT`: Port for Prometheus metrics (default: 9090)
+- `LOG_LEVEL`: Logging level (default: info)
+
+### Docker Compose Example
+
+```yaml
+version: '3.8'
+services:
+  zwave-js-prom-exporter:
+    build: .
+    ports:
+      - "9090:9090"
+    environment:
+      - ZWAVE_WS_URL=ws://zwave-js-server:3000
+      - LOG_LEVEL=info
+    depends_on:
+      - zwave-js-server
+    restart: unless-stopped
+```
 
 ## Logging
 
