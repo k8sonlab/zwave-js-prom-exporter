@@ -18,30 +18,38 @@ class ZwaveWebSocketClient {
   connect() {
     if (this.isReconnecting) return; // Prevent multiple connection attempts
 
-    this.ws = new WebSocket(this.url);
+    const createWS = () => {
+      this.ws = new WebSocket(this.url);
 
-    this.ws.on('open', () => {
-      logger.info('Connected to zwave-js-server');
-      this.reconnectAttempts = 0;
-      this.reconnectDelay = 1000;
-      this.isReconnecting = false;
-      this.sendInitialize();
-    });
+      this.ws.on('open', () => {
+        logger.info('Connected to zwave-js-server');
+        this.reconnectAttempts = 0;
+        this.reconnectDelay = 1000;
+        this.isReconnecting = false;
+        this.sendInitialize();
+      });
 
-    this.ws.on('message', (data) => {
-      const message = JSON.parse(data.toString());
-      this.handleMessage(message);
-    });
+      this.ws.on('message', (data) => {
+        const message = JSON.parse(data.toString());
+        this.handleMessage(message);
+      });
 
-    this.ws.on('error', (error) => {
-      logger.error('WebSocket error:', error);
-      this.scheduleReconnect();
-    });
+      this.ws.on('error', (error) => {
+        logger.error('WebSocket error:', error);
+        this.scheduleReconnect();
+      });
 
-    this.ws.on('close', () => {
-      logger.info('WebSocket connection closed');
-      this.scheduleReconnect();
-    });
+      this.ws.on('close', () => {
+        logger.info('WebSocket connection closed');
+        this.scheduleReconnect();
+      });
+    };
+
+    if (this.reconnectAttempts === 0) {
+      setTimeout(createWS, 30000);
+    } else {
+      createWS();
+    }
   }
 
   scheduleReconnect() {
@@ -57,6 +65,7 @@ class ZwaveWebSocketClient {
     logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     setTimeout(() => {
+      this.isReconnecting = false;
       this.connect();
     }, delay);
   }
