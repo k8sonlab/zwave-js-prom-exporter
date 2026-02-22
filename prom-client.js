@@ -51,7 +51,7 @@ class PromClient {
       }
 
       // Create metric name based on command class
-      const metricName = 'zwave_' + commandClassName.toLowerCase().replace(/\s+/g, '_');
+      const metricName = 'zwavejs_' + commandClassName.toLowerCase().replace(/\s+/g, '_');
 
       // Create gauge if it doesn't exist
       if (!this.gauges.has(metricName)) {
