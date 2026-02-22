@@ -37,4 +37,4 @@ The WebSocket client sends the following initial commands:
 
 ## Metrics
 
-Dynamic metrics are created for each Z-Wave command class with the format `zwave_{command_class_name}` (e.g., `zwave_binary_switch`, `zwave_multilevel_switch`). Each metric includes labels for `node_id`, `property`, `property_key`, and `endpoint`.
+Dynamic metrics are created for each Z-Wave command class with the format `zwave_{command_class_name}` (e.g., `zwave_binary_switch`, `zwave_multilevel_sensor`). Each metric includes labels for `node_id`, `node_name`, `node_location`, `property`, `property_key`, and `endpoint`.

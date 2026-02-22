@@ -56,11 +56,28 @@ class ZwaveWebSocketClient {
       logger.info('Server version:', message);
       this.sendStartListening();
     } else if (message.type === 'result') {
-      logger.debug('Command result:', message);
+      if (message.messageId === this.startListeningMsgId) {
+        this.parseState(message.result);
+      } else {
+        logger.debug('Command result:', message);
+      }
     } else if (message.type === 'event') {
       this.handleEvent(message.event);
     } else {
       logger.warn('Unknown message type:', message);
+    }
+  }
+
+  parseState(result) {
+    if (result && result.state && result.state.nodes) {
+      result.state.nodes.forEach(node => {
+        this.nodes.set(node.nodeId, {
+          name: node.name || '',
+          location: node.location || ''
+        });
+      });
+      logger.info(`Parsed ${this.nodes.size} nodes from state`);
+      this.promClient.setNodes(this.nodes);
     }
   }
 

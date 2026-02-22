@@ -8,6 +8,7 @@ class PromClient {
     promClient.collectDefaultMetrics({ register: this.register });
 
     this.gauges = new Map();
+    this.nodes = new Map();
 
     this.server = http.createServer((req, res) => {
       if (req.url === '/metrics') {
@@ -26,10 +27,14 @@ class PromClient {
     });
   }
 
+  setNodes(nodes) {
+    this.nodes = nodes;
+  }
+
   handleEvent(event) {
     if (event.source === 'node' && event.event === 'value updated') {
       const { nodeId, args } = event;
-      const { commandClassName, endpoint, property, propertyKey, newValue } = args;
+      const { commandClassName, endpoint, property, propertyKey, propertyName, propertyKeyName, newValue } = args;
 
       // Convert to number if possible
       let value = newValue;
@@ -48,7 +53,7 @@ class PromClient {
         this.gauges.set(metricName, new promClient.Gauge({
           name: metricName,
           help: `Z-Wave ${commandClassName} values`,
-          labelNames: ['node_id', 'property', 'property_key', 'endpoint'],
+          labelNames: ['node_id', 'node_name', 'node_location', 'property', 'property_key', 'endpoint'],
           registers: [this.register]
         }));
       }
@@ -57,8 +62,10 @@ class PromClient {
 
       const labels = {
         node_id: nodeId,
-        property: property,
-        property_key: propertyKey || '',
+        node_name: this.nodes.get(nodeId)?.name || '',
+        node_location: this.nodes.get(nodeId)?.location || '',
+        property: propertyName || property,
+        property_key: propertyKeyName || propertyKey || '',
         endpoint: endpoint || 0
       };
 
