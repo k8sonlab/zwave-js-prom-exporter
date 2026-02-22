@@ -11,7 +11,7 @@ class ZwaveWebSocketClient {
     this.startListeningMsgId = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 10;
-    this.reconnectDelay = 1000; // Start with 1 second
+    this.reconnectDelay = 30000; // Start with 30 seconds
     this.isReconnecting = false;
   }
 
@@ -53,7 +53,7 @@ class ZwaveWebSocketClient {
     this.reconnectAttempts++;
     this.isReconnecting = true;
 
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
+    const delay = 10000; // Fixed 10 second delay
     logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     setTimeout(() => {
@@ -156,23 +156,6 @@ class ZwaveWebSocketClient {
     logger.debug('Event:', event);
     // Pass to prom client
     this.promClient.handleEvent(event);
-  }
-
-  scheduleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.error(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
-      return;
-    }
-
-    this.reconnectAttempts++;
-    this.isReconnecting = true;
-
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
-    logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-
-    setTimeout(() => {
-      this.connect();
-    }, delay);
   }
 }
 
