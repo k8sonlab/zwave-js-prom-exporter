@@ -8,11 +8,8 @@ class ZwaveWebSocketClient {
     this.ws = null;
     this.messageId = 1;
     this.nodes = new Map();
+    this.reconnectDelay = 3000;
     this.startListeningMsgId = null;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 10;
-    this.reconnectDelay = 30000; // Start with 30 seconds
-    this.isReconnecting = false;
   }
 
   connect() {
@@ -23,9 +20,6 @@ class ZwaveWebSocketClient {
 
       this.ws.on('open', () => {
         logger.info('Connected to zwave-js-server');
-        this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;
-        this.isReconnecting = false;
         this.sendInitialize();
       });
 
@@ -36,7 +30,7 @@ class ZwaveWebSocketClient {
 
       this.ws.on('error', (error) => {
         logger.error('WebSocket error:', error);
-        this.scheduleReconnect();
+        //this.scheduleReconnect();
       });
 
       this.ws.on('close', () => {
@@ -44,30 +38,17 @@ class ZwaveWebSocketClient {
         this.scheduleReconnect();
       });
     };
-
-    if (this.reconnectAttempts === 0) {
-      setTimeout(createWS, 30000);
-    } else {
-      createWS();
+      
+    setTimeout(createWS, this.reconnectDelay);
     }
-  }
 
   scheduleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.error(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
-      return;
-    }
-
-    this.reconnectAttempts++;
-    this.isReconnecting = true;
-
     const delay = 10000; // Fixed 10 second delay
-    logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    logger.info(`Attempting to reconnect in ${delay}ms`);
 
     setTimeout(() => {
-      this.isReconnecting = false;
       this.connect();
-    }, delay);
+    }, this.reconnectDelay);
   }
 
   sendCommand(command, params = {}) {
