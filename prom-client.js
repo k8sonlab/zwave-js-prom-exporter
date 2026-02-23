@@ -71,7 +71,7 @@ class PromClient {
         this.gauges.set(metricName, new promClient.Gauge({
           name: metricName,
           help: `Z-Wave ${commandClassName} values`,
-          labelNames: ['node_id', 'Name', 'Location', 'property', 'property_key', 'endpoint'],
+          labelNames: ['node_id', 'name', 'location', 'property', 'property_key', 'endpoint'],
           registers: [this.register]
         }));
       }
@@ -80,8 +80,8 @@ class PromClient {
 
       const labels = {
         node_id: nodeId,
-        Name: this.nodes.get(nodeId)?.name || '',
-        Location: this.nodes.get(nodeId)?.location || '',
+        name: this.nodes.get(nodeId)?.name || '',
+        location: this.nodes.get(nodeId)?.location || '',
         property: propertyName || property,
         property_key: propertyKeyName || propertyKey || '',
         endpoint: endpoint || 0
