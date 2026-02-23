@@ -10,6 +10,7 @@ class ZwaveWebSocketClient {
     this.nodes = new Map();
     this.reconnectDelay = 10000;
     this.startListeningMsgId = null;
+    this.isConnected = false;
   }
 
   connect() {
@@ -20,6 +21,7 @@ class ZwaveWebSocketClient {
 
       this.ws.on('open', () => {
         logger.info('Connected to zwave-js-server');
+        this.isConnected = true;
         this.sendInitialize();
       });
 
@@ -35,6 +37,7 @@ class ZwaveWebSocketClient {
 
       this.ws.on('close', () => {
         logger.info('WebSocket connection closed');
+        this.isConnected = false;
         this.scheduleReconnect();
       });
     };
@@ -146,6 +149,10 @@ class ZwaveWebSocketClient {
     logger.debug('Event:', event);
     // Pass to prom client
     this.promClient.handleEvent(event);
+  }
+
+  isWebSocketConnected() {
+    return this.isConnected;
   }
 }
 

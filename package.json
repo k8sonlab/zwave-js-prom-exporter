@@ -1,6 +1,6 @@
 {
   "name": "zwave-js-prom-exporter",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A WebSocket prometheus exporter for Zwave js ui",
   "main": "index.js",
   "scripts": {

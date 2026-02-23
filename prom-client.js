@@ -3,12 +3,13 @@ const http = require('http');
 const logger = require('./logger');
 
 class PromClient {
-  constructor(port = 9090) {
+  constructor(port = 9090, wsClient = null) {
     this.register = new promClient.Registry();
     promClient.collectDefaultMetrics({ register: this.register });
 
     this.gauges = new Map();
     this.nodes = new Map();
+    this.wsClient = wsClient;
 
     this.server = http.createServer((req, res) => {
       if (req.url === '/metrics') {
@@ -16,6 +17,14 @@ class PromClient {
         this.register.metrics().then(metrics => {
           res.end(metrics);
         });
+      } else if (req.url === '/healthz') {
+        if (this.wsClient && this.wsClient.isWebSocketConnected()) {
+          res.statusCode = 200;
+          res.end('OK');
+        } else {
+          res.statusCode = 503;
+          res.end('Service Unavailable');
+        }
       } else {
         res.statusCode = 404;
         res.end('Not found');
@@ -25,6 +34,10 @@ class PromClient {
     this.server.listen(port, () => {
       logger.info(`Prometheus metrics server listening on port ${port}`);
     });
+  }
+
+  setWebSocketClient(wsClient) {
+    this.wsClient = wsClient;
   }
 
   setNodes(nodes) {

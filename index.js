@@ -7,4 +7,5 @@ const PROM_PORT = process.env.PROM_PORT || 9090;
 const promClient = new PromClient(PROM_PORT);
 const wsClient = new ZwaveWebSocketClient(ZWAVE_WS_URL, promClient);
 
+promClient.setWebSocketClient(wsClient);
 wsClient.connect();
