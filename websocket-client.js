@@ -8,7 +8,7 @@ class ZwaveWebSocketClient {
     this.ws = null;
     this.messageId = 1;
     this.nodes = new Map();
-    this.reconnectDelay = 3000;
+    this.reconnectDelay = 10000;
     this.startListeningMsgId = null;
   }
 
@@ -30,7 +30,7 @@ class ZwaveWebSocketClient {
 
       this.ws.on('error', (error) => {
         logger.error('WebSocket error:', error);
-        //this.scheduleReconnect();
+        // disable this - this.scheduleReconnect();
       });
 
       this.ws.on('close', () => {
