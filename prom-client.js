@@ -53,7 +53,7 @@ class PromClient {
       if ([112, 114, 134, 96].includes(commandClass)) {
         return;
       }
-
+      logger.info(`Handling event for node ${nodeId}, commandClass: ${commandClass}, property: ${property}, propertyKey: ${propertyKey}, newValue: ${newValue}`);
       // Convert to number if possible
       let value = newValue;
       if (typeof value === 'boolean') {
@@ -63,8 +63,15 @@ class PromClient {
         return;
       }
 
+      // Add suffix on specific metrics
+      let metricNameSuffix = '';
+      if (commandClass === 50 && propertyKey == 65537) {
+        logger.debug('Adding _total suffix for Multilevel Sensor Scale property');
+        metricNameSuffix = '_total';
+      }
+
       // Create metric name based on command class
-      const metricName = 'zwavejs_' + commandClassName.toLowerCase().replace(/\s+/g, '_');
+      const metricName = 'zwavejs_' + commandClassName.toLowerCase().replace(/\s+/g, '_') + metricNameSuffix;
 
       // Create gauge if it doesn't exist
       if (!this.gauges.has(metricName)) {
