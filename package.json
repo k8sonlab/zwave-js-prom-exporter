@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "ws": "^8.14.2",
+    "ws": "^8.19.0",
     "prom-client": "^15.1.0",
     "winston": "^3.11.0"
   },
