@@ -1,5 +1,5 @@
 # Use Node.js 20 (compatible with zwave-js-ui)
-FROM node:24.19.0-alpine
+FROM node:26.13.1-alpine
 
 # Set working directory
 WORKDIR /app
